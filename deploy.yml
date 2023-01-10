@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update the server
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: latest
+    - name: Install php
+      apt:
+        name: php8.1-fpm
+        state: latest
+
+    - name: Remove the old site file
+      file:
+        path: /var/www/html/index.nginx-debian.html
+        state: absent
+
+    - name: Remove the nginx conf. file
+      file:
+        path: /etc/nginx/sites-available/default
+        state: absent
+
+    - name: Copy the new conf. file for nginx
+      copy:
+        src: default
+        dest: /etc/nginx/sites-available
+        owner: root
+        group: root
+        mode: 0744
+
+    - name: Copy the new php site file
+      copy:
+        src: index.php
+        dest: /var/www/html
+        owner: root
+        group: root
+        mode: 0744
+
+    - name: Restart Nginx
+      tags: restart
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
